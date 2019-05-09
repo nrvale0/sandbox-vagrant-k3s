@@ -3,3 +3,4 @@ node-token
 k3s.yaml
 k3s
 .vagrant
+vault-helm

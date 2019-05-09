@@ -36,4 +36,27 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       worker.vm.provision "validate" , type: "shell", keep_color: false, run: "always", path: "vms/worker/validate.sh"
     end
   end
+
+  config.trigger.after [:up, :reload, :restart, :provision, :resume] do |trigger|
+    trigger.info = <<-EOF
+
+    Congrats on your shiny new k3s cluster.
+
+    Rancher local-path storage available via storageClass 'local-path'
+
+    A 'k3s' binary is dropped into this directory when the control plane is provisioned.
+
+    Config for using kubectl with the cluster is in 'k3s.yaml' in this directory. Ex:
+    $ export KUBECONFIG=`pwd`/k3s.yaml
+
+    $ k3s kubectl get nodes
+
+    or
+
+    $ kubectl get nodes
+
+    Helm Tiller serviceAccount is 'tiller'. Ex:
+    $ helm init --serviceaccount=tiller
+EOF
+  end
 end

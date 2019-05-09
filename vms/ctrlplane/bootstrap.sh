@@ -49,6 +49,10 @@ function k3s-bootstrap () {
      cat /var/lib/rancher/k3s/server/node-token > /vagrant/node-token;
      cp /usr/local/bin/k3s /vagrant/;
      cp /etc/rancher/k3s/k3s.yaml /vagrant/)
+
+    echo 'Applying manifests from /vagrant/manifests...'
+    (set -x;
+     k3s kubectl apply --overwrite=true -R -f /vagrant/manifests)
 }
 
 
