@@ -27,7 +27,7 @@ EOF
     echo 'Prepping node to act as k8s/k3s worker...'
     (set -x;
      apt-get update;
-     apt-get install -y wget curl)
+     apt-get install -y wget curl facter)
 
     if ! command -v inspec > /dev/null 2>&1 ; then
 	echo 'Installing InSpec for validation testing...'
