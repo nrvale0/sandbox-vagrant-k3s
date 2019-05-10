@@ -44,20 +44,6 @@ net.ipv6.conf.default.disable_ipv6=1
 EOF
      )
 
-#     echo 'Disabling systemd-resolved in favor of unbound...'
-#     (set -x;
-#      cat <<EOF | tee /etc/resolv.conf
-# server 1.1.1.1
-# server 8.8.8.8
-# server 127.0.0.1
-# options edns0
-# EOF
-#      systemctl disable systemd-resolved;
-#      systemctl stop systemd-resolved;
-#      systemctl enable unbound-resolvconf;
-#      systemctl enable unbound;
-#      systemctl restart unbound)
-
     if ! test -e /usr/local/bin/k3s; then
 	echo 'Downloading k3s installer...'
 	(set -x;
