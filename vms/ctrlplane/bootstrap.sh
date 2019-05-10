@@ -1,5 +1,7 @@
 #!/bin/bash
 
+: ${K3S_VERSION:-v0.5.0}
+
 [ ! -n "$DEBUG" ] || set -x
 
 set -ue
@@ -17,7 +19,7 @@ function  prep () {
     (set -x;
      apt-get update;
      apt-get upgrade -y;
-     apt-get install -y httpie curl docker.io)
+     apt-get install -y httpie curl docker.io facter)
 
     if ! command -v inspec > /dev/null 2>&1 ; then
 	echo 'Installing InSpec for validation testing...'
@@ -56,14 +58,15 @@ EOF
 #      systemctl enable unbound;
 #      systemctl restart unbound)
 
-    echo 'Installing k8s/k3s control plane...'
-    if ! command -v k3s > /dev/null 2>&1; then
+    if ! test -e /usr/local/bin/k3s; then
+	echo 'Downloading k3s installer...'
 	(set -x;
-	 wget -c -O /tmp/k3s-install.sh https://get.k3s.io;
-	 chmod +x /tmp/k3s-install.sh;
-	 /tmp/k3s-install.sh)
+	 wget -c -O - https://get.k3s.io > /usr/local/bin/k3s;
+	 chmod +x /usr/local/bin/k3s;
+	 local ipaddress="$(facter networking.interfaces.enp0s8.ip)";
+	 /usr/local/bin/k3s server --bind-address "${ipaddress}" --node-ip "${ipaddress}")
     else
-	echo 'k3s binary already installed...'
+	echo 'k3s is already installed...'
     fi
 
     (set -x;
