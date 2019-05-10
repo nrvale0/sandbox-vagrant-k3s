@@ -64,35 +64,6 @@ EOF
      cp /usr/local/bin/k3s /vagrant/;
      cp /etc/rancher/k3s/k3s.yaml /vagrant/)
 
-#     echo 'Forcing k3s to use CloudFlare DNS servers...'
-#     (set -x;
-#      cp /var/lib/rancher/k3s/server/manifests/coredns.yaml /tmp/;
-#      cd /tmp;
-#      patch --verbose <<EOF
-# --- coredns.yaml        2019-05-10 15:49:18.595056038 +0000
-# +++ coredns.yaml.new    2019-05-10 15:48:17.491056038 +0000
-# @@ -57,7 +57,7 @@
-#          health
-#          kubernetes cluster.local in-addr.arpa ip6.arpa {
-#            pods insecure
-# -          upstream
-# +          upstream 1.1.1.1
-#            fallthrough in-addr.arpa ip6.arpa
-#          }
-#          hosts /etc/coredns/NodeHosts {
-# @@ -65,7 +65,7 @@
-#            fallthrough
-#          }
-#          prometheus :9153
-# -        proxy . /etc/resolv.conf
-# +        proxy . 1.1.1.1
-#          cache 30
-#          loop
-#          reload
-# EOF
-#      k3s kubectl apply --force=true -f coredns.yaml)
-
-
     echo 'Applying manifests from /vagrant/manifests...'
     (set -x;
      k3s kubectl apply --overwrite=true -R -f /vagrant/manifests)
