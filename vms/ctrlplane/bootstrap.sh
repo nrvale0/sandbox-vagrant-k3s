@@ -32,6 +32,11 @@ function  prep () {
 
 function k3s-bootstrap () {
 
+    echo 'Disable IPv6 to keep k3s networking nice and simple..'
+    (set -x;
+     echo 1 > net.ipv6.conf.all.disable_ipv6;
+     echo 1> net.ipv6.conf.default.disable_ipv6)
+
 #     echo 'Disabling systemd-resolved in favor of unbound...'
 #     (set -x;
 #      cat <<EOF | tee /etc/resolv.conf

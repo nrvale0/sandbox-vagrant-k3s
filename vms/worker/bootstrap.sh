@@ -13,6 +13,12 @@ trap onerr ERR
 
 
 function prep () {
+
+    echo 'Disable IPv6 to keep k3s networking nice and simple..'
+    (set -x;
+     echo 1 > net.ipv6.conf.all.disable_ipv6;
+     echo 1> net.ipv6.conf.default.disable_ipv6)
+
     echo 'Prepping node to act as k8s/k3s worker...'
     (set -x;
      apt-get update;
