@@ -17,7 +17,7 @@ function  prep () {
     (set -x;
      apt-get update;
      apt-get upgrade -y;
-     apt-get install -y httpie curl docker.io unbound)
+     apt-get install -y httpie curl docker.io)
 
     if ! command -v inspec > /dev/null 2>&1 ; then
 	echo 'Installing InSpec for validation testing...'
@@ -34,8 +34,13 @@ function k3s-bootstrap () {
 
     echo 'Disable IPv6 to keep k3s networking nice and simple..'
     (set -x;
-     echo 1 > net.ipv6.conf.all.disable_ipv6;
-     echo 1> net.ipv6.conf.default.disable_ipv6)
+     sysctl -w net.ipv6.conf.all.disable_ipv6=1;
+     sysctl -w net.ipv6.conf.default.disable_ipv6=1;
+     cat <<EOF | tee /etc/sysctl.d/10-ipv6.conf
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+EOF
+     )
 
 #     echo 'Disabling systemd-resolved in favor of unbound...'
 #     (set -x;

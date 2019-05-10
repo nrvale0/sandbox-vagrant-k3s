@@ -16,8 +16,13 @@ function prep () {
 
     echo 'Disable IPv6 to keep k3s networking nice and simple..'
     (set -x;
-     echo 1 > net.ipv6.conf.all.disable_ipv6;
-     echo 1> net.ipv6.conf.default.disable_ipv6)
+     sysctl -w net.ipv6.conf.all.disable_ipv6=1;
+     sysctl -w net.ipv6.conf.default.disable_ipv6=1;
+     cat <<EOF | tee /etc/sysctl.d/10-ipv6.conf
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+EOF
+     )
 
     echo 'Prepping node to act as k8s/k3s worker...'
     (set -x;
