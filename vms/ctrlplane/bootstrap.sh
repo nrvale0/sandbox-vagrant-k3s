@@ -17,7 +17,7 @@ function  prep () {
     (set -x;
      apt-get update;
      apt-get upgrade -y;
-     apt-get install -y httpie curl docker.io)
+     apt-get install -y httpie curl docker.io unbound)
 
     if ! command -v inspec > /dev/null 2>&1 ; then
 	echo 'Installing InSpec for validation testing...'
@@ -31,6 +31,21 @@ function  prep () {
 
 
 function k3s-bootstrap () {
+
+#     echo 'Disabling systemd-resolved in favor of unbound...'
+#     (set -x;
+#      cat <<EOF | tee /etc/resolv.conf
+# server 1.1.1.1
+# server 8.8.8.8
+# server 127.0.0.1
+# options edns0
+# EOF
+#      systemctl disable systemd-resolved;
+#      systemctl stop systemd-resolved;
+#      systemctl enable unbound-resolvconf;
+#      systemctl enable unbound;
+#      systemctl restart unbound)
+
     echo 'Installing k8s/k3s control plane...'
     if ! command -v k3s > /dev/null 2>&1; then
 	(set -x;
@@ -49,6 +64,35 @@ function k3s-bootstrap () {
      cat /var/lib/rancher/k3s/server/node-token > /vagrant/node-token;
      cp /usr/local/bin/k3s /vagrant/;
      cp /etc/rancher/k3s/k3s.yaml /vagrant/)
+
+#     echo 'Forcing k3s to use CloudFlare DNS servers...'
+#     (set -x;
+#      cp /var/lib/rancher/k3s/server/manifests/coredns.yaml /tmp/;
+#      cd /tmp;
+#      patch --verbose <<EOF
+# --- coredns.yaml        2019-05-10 15:49:18.595056038 +0000
+# +++ coredns.yaml.new    2019-05-10 15:48:17.491056038 +0000
+# @@ -57,7 +57,7 @@
+#          health
+#          kubernetes cluster.local in-addr.arpa ip6.arpa {
+#            pods insecure
+# -          upstream
+# +          upstream 1.1.1.1
+#            fallthrough in-addr.arpa ip6.arpa
+#          }
+#          hosts /etc/coredns/NodeHosts {
+# @@ -65,7 +65,7 @@
+#            fallthrough
+#          }
+#          prometheus :9153
+# -        proxy . /etc/resolv.conf
+# +        proxy . 1.1.1.1
+#          cache 30
+#          loop
+#          reload
+# EOF
+#      k3s kubectl apply --force=true -f coredns.yaml)
+
 
     echo 'Applying manifests from /vagrant/manifests...'
     (set -x;

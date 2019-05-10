@@ -56,7 +56,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     $ kubectl get nodes
 
     Helm Tiller serviceAccount is 'tiller'. Ex:
-    $ helm init --serviceaccount=tiller
+    $ helm init --service-account tiller
 EOF
   end
 end
