@@ -19,7 +19,8 @@ function  prep () {
     (set -x;
      apt-get update;
      apt-get upgrade -y;
-     apt-get install -y httpie curl docker.io facter)
+     DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
+		    apt-get install -y httpie curl docker.io facter llmnrd libnss-resolve tshark)
 
     if ! command -v inspec > /dev/null 2>&1 ; then
 	echo 'Installing InSpec for validation testing...'
@@ -29,10 +30,6 @@ function  prep () {
 	 /tmp/inspec-install.sh;
 	 echo "export PATH=/opt/chef/embedded/bin:${PATH}" | tee /etc/profile.d/99-chef.sh)
     fi
-}
-
-
-function k3s-bootstrap () {
 
     echo 'Disable IPv6 to keep k3s networking nice and simple..'
     (set -x;
@@ -42,8 +39,28 @@ function k3s-bootstrap () {
 net.ipv6.conf.all.disable_ipv6=1
 net.ipv6.conf.default.disable_ipv6=1
 EOF
-     )
+    )
 
+    echo 'Enable LLMNR...'
+    (set -x;
+     cat <<EOF | tee /etc/systemd/network/enp0s8.network
+[Match]
+Name=enp0s8
+
+[Network]
+LLMNR=yes
+EOF
+     cat <<EOF | tee /etc/systemd/resolved.conf
+[Resolve]
+LLMNR=yes
+EOF
+     systemctl daemon-reload;
+     systemctl restart systemd-networkd;
+     systemctl restart systemd-resolved)
+}
+
+
+function k3s-bootstrap () {
     if ! test -e /usr/local/bin/k3s; then
 	echo 'Downloading k3s installer...'
 	(set -x;

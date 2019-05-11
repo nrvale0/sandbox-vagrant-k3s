@@ -27,7 +27,8 @@ EOF
     echo 'Prepping node to act as k8s/k3s worker...'
     (set -x;
      apt-get update;
-     apt-get install -y wget curl facter)
+     DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
+		    apt-get install -y wget curl facter llmnrd libnss-resolve tshark)
 
     if ! command -v inspec > /dev/null 2>&1 ; then
 	echo 'Installing InSpec for validation testing...'
@@ -38,38 +39,51 @@ EOF
 	 echo "export PATH=/opt/chef/embedded/bin:${PATH}" | tee /etc/profile.d/99-chef.sh)
     fi
 
-    echo 'Copying k3s binary...'
+    echo 'Disable IPv6 to keep k3s networking nice and simple..'
     (set -x;
-     cp /vagrant/k3s /usr/local/bin/;
-     chmod +x /usr/local/bin/k3s)
+     sysctl -w net.ipv6.conf.all.disable_ipv6=1;
+     sysctl -w net.ipv6.conf.default.disable_ipv6=1;
+     cat <<EOF | tee /etc/sysctl.d/10-ipv6.conf
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+EOF
+    )
+
+    echo 'Enable LLMNR...'
+    (set -x;
+     cat <<EOF | tee /etc/systemd/network/enp0s8.network
+[Match]
+Name=enp0s8
+
+[Network]
+LLMNR=yes
+EOF
+     cat <<EOF | tee /etc/systemd/resolved.conf
+[Resolve]
+LLMNR=yes
+EOF
+     systemctl daemon-reload;
+     systemctl restart systemd-networkd;
+     systemctl restart systemd-resolved)
 }
 
 
 function k3s-bootstrap () {
-    echo 'Bootstrapping k8s/k3s agent...'
-
-    local node_token="$(cat /vagrant/node-token)"
-    tee /etc/systemd/system/k3s-agent.service <<EOF
-[Unit]
-Description=k3s agent
-After=network.target
-
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/var/k3s-agent
-ExecStart=/usr/local/bin/k3s agent --server https://k8scontrol0:6443 --token ${node_token}
-Restart=on-abort
-
-[Install]
-WantedBy=multi-user.target
-EOF
+    if ! test -e /usr/local/bin/k3s; then
+	echo 'Bootstrapping k8s/k3s agent...'
+	(set -x;
+	 cp /vagrant/k3s /usr/local/bin/;
+	 local node_token="$(cat /vagrant/node-token)";
+	 local ipaddress="$(facter networking.interfaces.enp0s8.ip)";
+	 /usr/local/bin/k3s agent --token "${node_token}" --node-ip "${ipaddress}" --server https://k8scontrol0:6443)
+    else
+	echo 'k3s is already installed...'
+    fi
 
     (set -x;
-     mkdir -p /var/k3s-agent;
-     chmod 644 /etc/systemd/system/k3s-agent.service;
-     systemctl enable k3s-agent.service;
-     systemctl restart k3s-agent.service)
+     systemctl enable k3s.service;
+     systemctl restart k3s.service;
+     systemctl status k3s.service)
 }
 
 
