@@ -15,6 +15,7 @@ trap onerr ERR
 function validate () {
     echo 'Validaing k8s/k3s worker...'
     (set -x;
+     inspec detect --chef-license=accept;
      inspec exec /vagrant/vms/worker/validate.d/inspec)
 }
 
