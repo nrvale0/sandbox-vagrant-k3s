@@ -16,11 +16,22 @@ trap onerr ERR
 
 function  prep () {
     echo 'Prepping the system to take k8s/k3s control plane...'
+
+    echo 'Disable IPv6 to keep k3s networking nice and simple..'
+    (set -x;
+     sysctl -w net.ipv6.conf.all.disable_ipv6=1;
+     sysctl -w net.ipv6.conf.default.disable_ipv6=1;
+     cat <<EOF | tee /etc/sysctl.d/10-ipv6.conf
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+EOF
+     )
+
     (set -x;
      apt-get update;
      apt-get upgrade -y;
      DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
-		    apt-get install -y httpie curl docker.io facter) # llmnrd libnss-resolve tshark)
+		    apt-get install -y httpie curl docker.io facter)
 
     if ! command -v inspec > /dev/null 2>&1 ; then
 	echo 'Installing InSpec for validation testing...'
@@ -30,35 +41,6 @@ function  prep () {
 	 /tmp/inspec-install.sh -P inspec;
 	 echo "export PATH=/opt/chef/embedded/bin:${PATH}" | tee /etc/profile.d/99-chef.sh)
     fi
-
-#     echo 'Disable IPv6 to keep k3s networking nice and simple..'
-#     (set -x;
-#      sysctl -w net.ipv6.conf.all.disable_ipv6=1;
-#      sysctl -w net.ipv6.conf.default.disable_ipv6=1;
-#      cat <<EOF | tee /etc/sysctl.d/10-ipv6.conf
-# net.ipv6.conf.all.disable_ipv6=1
-# net.ipv6.conf.default.disable_ipv6=1
-# EOF
-#     )
-
-#     echo 'Enable LLMNR...'
-#     (set -x;
-#      cat <<EOF | tee /etc/systemd/network/enp0s8.network
-# [Match]
-# Name=enp0s8
-
-# [Network]
-# LLMNR=yes
-# EOF
-#      cat <<EOF | tee /etc/systemd/resolved.conf
-# [Resolve]
-# LLMNR=yes
-# EOF
-
-    # (set -x;
-    #  systemctl daemon-reload;
-    #  systemctl restart systemd-networkd;
-    #  systemctl restart systemd-resolved)
 }
 
 

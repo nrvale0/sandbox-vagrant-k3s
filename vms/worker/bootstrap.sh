@@ -39,34 +39,6 @@ EOF
 	 echo "export PATH=/opt/chef/embedded/bin:${PATH}" | tee /etc/profile.d/99-chef.sh)
     fi
 
-#     echo 'Disable IPv6 to keep k3s networking nice and simple..'
-#     (set -x;
-#      sysctl -w net.ipv6.conf.all.disable_ipv6=1;
-#      sysctl -w net.ipv6.conf.default.disable_ipv6=1;
-#      cat <<EOF | tee /etc/sysctl.d/10-ipv6.conf
-# net.ipv6.conf.all.disable_ipv6=1
-# net.ipv6.conf.default.disable_ipv6=1
-# EOF
-#     )
-
-#     echo 'Enable LLMNR...'
-#     (set -x;
-#      cat <<EOF | tee /etc/systemd/network/enp0s8.network
-# [Match]
-# Name=enp0s8
-
-# [Network]
-# LLMNR=yes
-# EOF
-#      cat <<EOF | tee /etc/systemd/resolved.conf
-# [Resolve]
-# LLMNR=yes
-# EOF
-
-    # (set -x;
-    #  systemctl daemon-reload;
-    #  systemctl restart systemd-networkd;
-    #  systemctl restart systemd-resolved)
     echo 'Setting up systemd service for k3s agent...'
     (set -x;
      local node_token="$(cat /vagrant/node-token)";
