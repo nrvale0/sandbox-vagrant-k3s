@@ -14,7 +14,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     ctrlplane.vm.hostname = "k8scontrol0"
     ctrlplane.vm.network :private_network, :auto_network => true
-    # ctrlplane.vm.network :public_network, use_dhcp_assigned_default_route: true
     ctrlplane.vm.provision :hosts, :autoconfigure => true, :sync_hosts => true
 
     ctrlplane.vm.network "forwarded_port", guest: 6443, host: 6443 # k3s API port
@@ -31,7 +30,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       worker.vm.hostname = "#{kubelet}"
       worker.vm.network :private_network, :auto_network => true
-      # worker.vm.network :public_network, use_dhcp_assigned_default_route: true
       worker.vm.provision :hosts, :autoconfigure => true, :sync_hosts => true
 
       worker.vm.provision "install"  , type: "shell", keep_color: false, run: "always", path: "vms/worker/bootstrap.sh"
