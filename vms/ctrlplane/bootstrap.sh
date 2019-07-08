@@ -27,12 +27,14 @@ net.ipv6.conf.default.disable_ipv6=1
 EOF
      )
 
+    echo 'Installing necessary/useful packages...'
     (set -x;
      apt-get update;
      apt-get upgrade -y;
      DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
-		    apt-get install -y httpie curl docker.io facter)
+		    apt-get install -y httpie curl facter)
 
+    echo 'Checking for pre-installed InSpec...'
     if ! command -v inspec > /dev/null 2>&1 ; then
 	echo 'Installing InSpec for validation testing...'
 	(set -x;
