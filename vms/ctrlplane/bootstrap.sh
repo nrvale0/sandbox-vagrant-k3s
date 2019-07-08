@@ -53,7 +53,7 @@ function k3s-bootstrap () {
 	 wget -c -O - https://get.k3s.io > /usr/local/bin/k3s;
 	 chmod +x /usr/local/bin/k3s;
 	 local ipaddress="$(facter networking.interfaces.enp0s8.ip)";
-	 /usr/local/bin/k3s server --bind-address "${ipaddress}" --node-ip "${ipaddress}" --flannel-iface enp0s8)
+	 /usr/local/bin/k3s server --bind-address "${ipaddress}" --node-ip "${ipaddress}" --flannel-iface enp0s8 --disable-agent)
     else
 	echo 'k3s is already installed...'
     fi
