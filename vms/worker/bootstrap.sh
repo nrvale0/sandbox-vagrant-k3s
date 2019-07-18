@@ -81,9 +81,16 @@ function k3s-bootstrap () {
 }
 
 
+function k3s-local-path-storage () {
+    echo 'Creating path for Rancher local-path storage...'
+    mkdir -p /opt/local-path-provisioner
+}
+
+
 function main () {
     prep
     k3s-bootstrap
+    k3s-local-path-storage
 }
 
 
