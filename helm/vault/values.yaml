@@ -1,0 +1,83 @@
+# Available parameters and their default values for the Vault chart.
+
+# Server, when enabled, configures a server cluster to run. This should
+# be disabled if you plan on connecting to a Vault cluster external to
+# the Kube cluster.
+
+global:
+  # enabled is the master enabled switch. Setting this to true or false
+  # will enable or disable all the components within this chart by default.
+  # Each component can be overridden using the component-specific "enabled"
+  # value.
+  enabled: true
+
+  # Domain to register the Vault DNS server to listen for.
+  # TODO: verify for Vault
+  domain: vault
+
+  # Image is the name (and tag) of the Vault Docker image for clients and
+  # servers below. This can be overridden per component.
+  image: "vault:0.11.1"
+  #image: "vault"
+
+server:
+  enabled: "-"
+  image: null
+  replicas: 1
+
+  # storage and storageClass are the settings for configuring stateful
+  # storage for the server pods. storage should be set to the disk size of
+  # the attached volume. storageClass is the class of storage which defaults
+  # to null (the Kube cluster will pick the default).
+  storage: 10Gi
+  storageClass: local-path
+
+  # Resource requests, limits, etc. for the server cluster placement. This
+  # should map directly to the value of the resources field for a PodSpec.
+  # By default no direct resource request is made.
+  resources: {}
+
+  # extraConfig is a raw string of extra configuration to set with the
+  # server. This should be JSON or HCL.
+  extraConfig: |
+    ui = true
+    listener "tcp" {
+      tls_disable = 1
+      address     = "0.0.0.0:8200"
+    }
+    storage "file" {
+      path = "/vault/data"
+    }
+
+  # extraVolumes is a list of extra volumes to mount. These will be exposed
+  # to Vault in the path `/vault/userconfig/<name>/`. The value below is
+  # an array of objects, examples are shown below.
+  extraVolumes: []
+    # - type: secret (or "configMap")
+    #   name: my-secret
+    #   load: false # if true, will add to `-config-dir` to load by Vault
+
+# Configuration for DNS configuration within the Kubernetes cluster.
+# This creates a service that routes to all agents (client or server)
+# for serving DNS requests. This DOES NOT automatically configure kube-dns
+# today, so you must still manually configure a `stubDomain` with kube-dns
+# for this to have any effect:
+# https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/#configure-stub-domain-and-upstream-dns-servers
+dns:
+  enabled: "-"
+
+ui:
+  # True if you want to enable the Vault UI. The UI will run only
+  # on the server nodes. This makes UI access via the service below (if
+  # enabled) predictable rather than "any node" if you're running Vault
+  # clients as well.
+  enabled: "-"
+
+  # True if you want to create a Service entry for the Vault UI.
+  #
+  # serviceType can be used to control the type of service created. For
+  # example, setting this to "LoadBalancer" will create an external load
+  # balancer (for supported K8S installations) to access the UI.
+  service:
+    enabled: true
+    type: null
