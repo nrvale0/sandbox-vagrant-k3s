@@ -30,9 +30,14 @@ helm-install:
 consul: consul-clean consul-install
 consul-clean:
 	@echo 'Removing old Consul deployments...'
-	if helm get consul-for-vault > /dev/null 2>&1 ; then \
-		helm delete --purge consul-for-vault; \
+	if helm get consul4vault > /dev/null 2>&1 ; then \
+		helm delete --purge consul4vault; \
 	fi
+
+	@echo 'Removing any lingering Consul PVCs...'
+	for i in `kubectl get pvc --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep consul4vault` ; do \
+		kubectl delete pvc $$i; \
+	done
 
 consul-install:
 	@echo 'Fetching Consul Helm Chart...'
@@ -43,16 +48,21 @@ consul-install:
 	cd helm/consul/chart/consul-helm && git checkout v0.8.1
 
 	@echo 'Creating Consul cluster for Vault storage...'
-	helm install --debug --wait -f helm/consul/values.yaml helm/consul/chart/consul-helm \
-		--name consul-for-vault
+	helm install --wait -f helm/consul/values.yaml helm/consul/chart/consul-helm \
+		--name consul4vault
 
 .PHONY: vault vault-clean vault-install
 vault: vault-clean vault-install
 vault-clean:
 	@echo 'Removing old Vault deployments...'
 	if helm get vault > /dev/null 2>&1 ; then \
-		helm delete --purge vault; \
+		helm delete --purge vault4k8s; \
 	fi
+
+	@echo 'Removing any lingering Vault PVCs...'
+	for i in `kubectl get pvc --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep vault4k8s` ; do \
+		kubectl delete pvc $$i; \
+	done
 
 vault-install:
 	@echo 'Fetching Vault Helm Chart...'
@@ -62,6 +72,7 @@ vault-install:
 	fi
 	cd helm/vault/chart/vault-helm && git checkout v0.0.1
 
-	@echo 'Creating Vault service...'
-	helm install --debug --wait -f helm/vault/values.yaml helm/vault/chart/vault-helm \
-		--name vault
+	@echo 'Creating Vault service ***without helm --wait***...'
+	@echo '*** NOTICE: You must init and unseal Vault for the SVC to become "ready"! ***'
+	helm install -f helm/vault/values.yaml helm/vault/chart/vault-helm \
+		--name vault4k8s
