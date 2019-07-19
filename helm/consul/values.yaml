@@ -5,7 +5,7 @@ global:
   # will enable or disable all the components within this chart by default.
   # Each component can be overridden using the component-specific "enabled"
   # value.
-  enabled: true
+  enabled: false
 
   # Domain to register the Consul DNS server to listen for.
   domain: consul
@@ -55,7 +55,7 @@ global:
 # be disabled if you plan on connecting to a Consul cluster external to
 # the Kube cluster.
 server:
-  enabled: "-"
+  enabled: true
   image: null
   replicas: 3
   bootstrapExpect: 3 # Should <= replicas count
@@ -80,7 +80,7 @@ server:
   # connect will enable Connect on all the servers, initializing a CA
   # for Connect-related connections. Other customizations can be done
   # via the extraConfig setting.
-  connect: true
+  connect: false
 
   # Resource requests, limits, etc. for the server cluster placement. This
   # should map directly to the value of the resources field for a PodSpec,
@@ -162,7 +162,7 @@ server:
 # within the Kube cluster. The current deployment model follows a traditional
 # DC where a single agent is deployed per node.
 client:
-  enabled: "-"
+  enabled: false
   image: null
   join: null
 

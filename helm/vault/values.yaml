@@ -9,7 +9,7 @@ global:
   # will enable or disable all the components within this chart by default.
   # Each component can be overridden using the component-specific "enabled"
   # value.
-  enabled: true
+  enabled: false
 
   # Domain to register the Vault DNS server to listen for.
   # TODO: verify for Vault
@@ -21,7 +21,7 @@ global:
   #image: "vault"
 
 server:
-  enabled: "-"
+  enabled: true
   image: null
   replicas: 1
 
@@ -71,7 +71,7 @@ ui:
   # on the server nodes. This makes UI access via the service below (if
   # enabled) predictable rather than "any node" if you're running Vault
   # clients as well.
-  enabled: "-"
+  enabled: true
 
   # True if you want to create a Service entry for the Vault UI.
   #
