@@ -1,0 +1,7 @@
+#+OPTIONS: num:nil ^:nil toc:nil author:nil
+
+* todo read and modify the Consul values
+* todo read and modity the Vault values
+* todo What about node labels?
+* todo testing of the af/anti-af logic
+* todo What about a test to make sure ctrlplane is not running a k3s agent/kubelet?
