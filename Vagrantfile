@@ -22,18 +22,21 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ctrlplane.vm.provision "validate" , type: "shell", keep_color: false, run: "always", path: "vms/ctrlplane/validate.sh"
   end
 
-  ["kubelet0-az0", "kubelet0-az1", "kubelet0-az2"].each do |kubelet|
-    config.vm.define "#{kubelet}".chomp, autostart: true do |worker|
-      worker.vm.provider "virtualbox" do |vb|
-        vb.memory = "1024"
+  (0..2).to_a.each do |az|
+    (0..2).to_a.each do |node|
+      config.vm.define "kubelet#{node}-az#{az}", autostart: true do |worker|
+        worker.vm.provider "virtualbox" do |vb|
+          # vb.memory = "1024"
+          vb.memory = "512"
+        end
+
+        worker.vm.hostname = "kubelet#{node}-az#{az}"
+        worker.vm.network :private_network, :auto_network => true
+        worker.vm.provision :hosts, :autoconfigure => true, :sync_hosts => true
+
+        worker.vm.provision "install"  , type: "shell", keep_color: false, run: "always", path: "vms/worker/bootstrap.sh"
+        worker.vm.provision "validate" , type: "shell", keep_color: false, run: "always", path: "vms/worker/validate.sh"
       end
-
-      worker.vm.hostname = "#{kubelet}"
-      worker.vm.network :private_network, :auto_network => true
-      worker.vm.provision :hosts, :autoconfigure => true, :sync_hosts => true
-
-      worker.vm.provision "install"  , type: "shell", keep_color: false, run: "always", path: "vms/worker/bootstrap.sh"
-      worker.vm.provision "validate" , type: "shell", keep_color: false, run: "always", path: "vms/worker/validate.sh"
     end
   end
 
