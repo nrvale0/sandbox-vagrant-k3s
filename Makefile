@@ -8,6 +8,14 @@ k8s:
 	@echo 'Add local-path storage for k3s for PVC support...'
 	kubectl apply -f manifests/local-path-storage.yaml
 
+	@echo 'Labeling nodes...'
+	for i in az0 az1 az2; do \
+		for j in `kubectl get nodes --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep $$i`; do \
+			kubectl label --overwrite nodes $$j az=$$i; \
+		done \
+	done
+	kubectl get nodes --show-labels
+
 .PHONY: helm helm-clean helm-install
 helm: helm-clean helm-install
 helm-clean:
@@ -70,7 +78,9 @@ vault-install:
 		mkdir -p helm/vault/chart ;\
 		git clone git@github.com:hashicorp/vault-helm helm/vault/chart/vault-helm ; \
 	fi
-	cd helm/vault/chart/vault-helm && git checkout v0.0.1
+	cd helm/vault/chart/vault-helm && \
+	git branch -t stanzas origin/stanzas && \
+	git checkout stanzas
 
 	@echo 'Creating Vault service ***without helm --wait***...'
 	@echo '*** NOTICE: You must init and unseal Vault for the SVC to become "ready"! ***'
