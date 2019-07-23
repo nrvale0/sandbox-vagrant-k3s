@@ -3,10 +3,10 @@
 * todo read and modify the Consul values
 * todo read and modify the Vault values
 * todo [#C] testing of the af/anti-af logic
+  DEADLINE: <2019-07-23 Tue> SCHEDULED: <2019-07-22 Mon>
+* done What about a test to make sure ctrlplane is not running a k3s agent/kubelet?
   SCHEDULED: <2019-07-22 Mon>
-* todo What about a test to make sure ctrlplane is not running a k3s agent/kubelet?
-  SCHEDULED: <2019-07-22 Mon>
-* todo What's the resolution for Consul via Helm as **dedicated** Vault storage?
+* done What's the resolution for Consul via Helm as **dedicated** Vault storage?
   DEADLINE: <2019-07-24 Wed> SCHEDULED: <2019-07-22 Mon>
-* todo [#A] What are workers not getting an update node-token?
+* done [#A] Why are workers not getting an update node-token?
   DEADLINE: <2019-07-22 Mon>
