@@ -23,7 +23,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   (0..2).to_a.each do |az|
-    (0..2).to_a.each do |node|
+    (0..3).to_a.each do |node|
       config.vm.define "kubelet#{node}-az#{az}", autostart: true do |worker|
         worker.vm.provider "virtualbox" do |vb|
           # vb.memory = "1024"

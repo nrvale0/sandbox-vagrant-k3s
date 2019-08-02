@@ -1,12 +1,17 @@
 #+OPTIONS: num:nil ^:nil toc:nil author:nil
 
-* todo read and modify the Consul values
-* todo read and modify the Vault values
-* todo [#C] testing of the af/anti-af logic
+* Pending
+** next [#B] read and modify the Vault values
+** todo [#C] testing of the af/anti-af logic
   DEADLINE: <2019-07-23 Tue> SCHEDULED: <2019-07-22 Mon>
-* done What about a test to make sure ctrlplane is not running a k3s agent/kubelet?
-  SCHEDULED: <2019-07-22 Mon>
-* done What's the resolution for Consul via Helm as **dedicated** Vault storage?
-  DEADLINE: <2019-07-24 Wed> SCHEDULED: <2019-07-22 Mon>
-* done [#A] Why are workers not getting an update node-token?
-  DEADLINE: <2019-07-22 Mon>
+
+* Done
+** done What about a test to make sure ctrlplane is not running a k3s agent/kubelet?
+   SCHEDULED: <2019-07-22 Mon>
+** done What's the resolution for Consul via Helm as **dedicated** Vault storage?
+   DEADLINE: <2019-07-24 Wed> SCHEDULED: <2019-07-22 Mon>
+** done [#A] Why are workers not getting an update node-token?
+   DEADLINE: <2019-07-22 Mon>
+** done [#A] read and modify the Consul values
+*** done spread amongst AZs
+    DEADLINE: <2019-08-01 Thu>

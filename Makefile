@@ -8,13 +8,20 @@ k8s:
 	@echo 'Add local-path storage for k3s for PVC support...'
 	kubectl apply -f manifests/local-path-storage.yaml
 
-	@echo 'Labeling nodes...'
+	@echo 'Labeling worker nodes with failure domains and node labels...'
 	for i in az0 az1 az2; do \
 		for j in `kubectl get nodes --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep $$i`; do \
-			kubectl label --overwrite nodes $$j az=$$i; \
+		kubectl label --overwrite nodes $$j failure-domain.beta.kubernetes.io/zone=$$i; \
+		kubectl label --overwrite nodes $$j dedicated_to=vault4k8s; \
 		done \
 	done
 	kubectl get nodes --show-labels
+
+	@echo 'Tainting workers nodes 0 through 2 in each AZ...'
+	for i in `kubectl get nodes --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | egrep -v kubelet3`; do \
+		kubectl taint --overwrite=true nodes $$i taint_for_consul_xor_vault=true:NoExecute; \
+	done
+	kubectl get nodes --template '{{range.items}}{{.metadata.name}} {{.spec.taints}}{{"\n"}}{{end}}'
 
 .PHONY: helm helm-clean helm-install
 helm: helm-clean helm-install
