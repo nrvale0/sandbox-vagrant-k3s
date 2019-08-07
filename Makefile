@@ -8,13 +8,20 @@ k8s:
 	@echo 'Add local-path storage for k3s for PVC support...'
 	kubectl apply -f manifests/local-path-storage.yaml
 
-	@echo 'Labeling worker nodes with failure domains and node labels...'
+	@echo 'Labeling worker nodes with failure domains...'
 	for i in az0 az1 az2; do \
 		for j in `kubectl get nodes --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep $$i`; do \
-		kubectl label --overwrite nodes $$j failure-domain.beta.kubernetes.io/zone=$$i; \
+			kubectl label --overwrite nodes $$j failure-domain.beta.kubernetes.io/zone=$$i; \
+		done \
+	done
+
+	echo 'Labeling subset of workers for Vault-related workloads...'
+	for i in az0 az1 az2; do \
+		for j in `kubectl get nodes --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | egrep -v kubelet3 | grep $$i`; do \
 		kubectl label --overwrite nodes $$j dedicated_to=vault4k8s; \
 		done \
 	done
+
 	kubectl get nodes --show-labels
 
 	@echo 'Tainting workers nodes 0 through 2 in each AZ...'
@@ -22,6 +29,14 @@ k8s:
 		kubectl taint --overwrite=true nodes $$i taint_for_consul_xor_vault=true:NoExecute; \
 	done
 	kubectl get nodes --template '{{range.items}}{{.metadata.name}} {{.spec.taints}}{{"\n"}}{{end}}'
+
+k8s-dashboard-port-forward:
+	@echo 'Setting up port-forward for k8s Dashboard on http://localhost:8443...'
+	if http http://localhost:8443 > /dev/null 2>&1 ; then \
+		echo 'Something is already listening on tcp/8443...' ;\
+	else \
+		(kubectl port-forward -n kube-system svc/kubernetes-dashboard 8443:443 &) \
+	fi
 
 .PHONY: helm helm-clean helm-install
 helm: helm-clean helm-install
@@ -66,11 +81,20 @@ consul-install:
 	helm install --wait -f helm/consul/values.yaml helm/consul/chart/consul-helm \
 		--name consul4vault
 
+consul-port-forward:
+	@echo 'Setting up port-forward for Consul UI on http://localhost:8500...'
+	if http http://localhost:8500 > /dev/null 2>&1 ; then \
+		echo 'Something is already listening on tcp/8500...' ;\
+	else \
+		pod="$$(kubectl get pods --selector=app=consul,component=server -o name | head -n1)" ;\
+		(kubectl port-forward $$pod 8500:8500 &) ;\
+	fi
+
 .PHONY: vault vault-clean vault-install
 vault: vault-clean vault-install
 vault-clean:
 	@echo 'Removing old Vault deployments...'
-	if helm get vault > /dev/null 2>&1 ; then \
+	if helm get vault4k8s > /dev/null 2>&1 ; then \
 		helm delete --purge vault4k8s; \
 	fi
 
@@ -85,11 +109,17 @@ vault-install:
 		mkdir -p helm/vault/chart ;\
 		git clone git@github.com:hashicorp/vault-helm helm/vault/chart/vault-helm ; \
 	fi
-	cd helm/vault/chart/vault-helm && \
-	git branch -t stanzas origin/stanzas && \
-	git checkout stanzas
 
 	@echo 'Creating Vault service ***without helm --wait***...'
 	@echo '*** NOTICE: You must init and unseal Vault for the SVC to become "ready"! ***'
 	helm install -f helm/vault/values.yaml helm/vault/chart/vault-helm \
 		--name vault4k8s
+
+vault-port-forward:
+	@echo 'Setting up port-forward for Vault UI on http://localhost:8200...'
+	if http http://localhost:8200 > /dev/null 2>&1 ; then \
+		echo 'Something is already listening on tcp/8200...' ;\
+	else \
+		pod="$$(kubectl get pods --selector=app=vault,component=server -o name | head -n1)" ;\
+		(kubectl port-forward $$pod 8200:8200 &) ;\
+	fi
