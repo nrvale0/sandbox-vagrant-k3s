@@ -58,6 +58,10 @@ helm-install:
 
 .PHONY: consul consul-clean consul-install
 consul: consul-clean consul-install
+consul-yaml:
+	@echo 'Generating YAML from Helm Consul chart...'
+	helm template helm/consul/chart/consul-helm -f helm/consul/values.yaml
+
 consul-clean:
 	@echo 'Removing old Consul deployments...'
 	if helm get consul4vault > /dev/null 2>&1 ; then \
@@ -92,6 +96,10 @@ consul-port-forward:
 
 .PHONY: vault vault-clean vault-install
 vault: vault-clean vault-install
+vault-yaml:
+	@echo 'Generating YAML from Helm Vault chart...'
+	helm template helm/vault/chart/vault-helm -f helm/vault/values.yaml
+
 vault-clean:
 	@echo 'Removing old Vault deployments...'
 	if helm get vault4k8s > /dev/null 2>&1 ; then \
