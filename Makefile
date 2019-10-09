@@ -3,11 +3,14 @@ SHELL=/bin/bash
 .PHONY: clean
 clean: vault-clean consul-clean helm-clean
 
-.PHONY: k8s
-k8s:
+.PHONY: k8s k8s-local-storage k8s-labels k8s-taints
+k8s: k8s k8s-local-storage k8s-labels k8s-taints
+
+k8s-local-storage:
 	@echo 'Add local-path storage for k3s for PVC support...'
 	kubectl apply -f manifests/local-path-storage.yaml
 
+k8s-labels:
 	@echo 'Labeling worker nodes with failure domains...'
 	for i in az0 az1 az2; do \
 		for j in `kubectl get nodes --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep $$i`; do \
@@ -24,12 +27,14 @@ k8s:
 
 	kubectl get nodes --show-labels
 
+k8s-taints:
 	@echo 'Tainting workers nodes 0 through 2 in each AZ...'
 	for i in `kubectl get nodes --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | egrep -v kubelet3`; do \
 		kubectl taint --overwrite=true nodes $$i taint_for_consul_xor_vault=true:NoExecute; \
 	done
 	kubectl get nodes --template '{{range.items}}{{.metadata.name}} {{.spec.taints}}{{"\n"}}{{end}}'
 
+.PHONY: k8s-dashboard-port-forward
 k8s-dashboard-port-forward:
 	@echo 'Setting up port-forward for k8s Dashboard on http://localhost:8443...'
 	if http http://localhost:8443 > /dev/null 2>&1 ; then \
